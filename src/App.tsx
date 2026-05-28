@@ -17,11 +17,14 @@ const steps = [
 ]
 
 const timeline = [
-  { date: '02/06', label: 'Apertura inscripciones hackatón' },
-  { date: '11/06', label: 'Arranca el Mundial 2026' },
-  { date: '16/06', label: 'Deadline inscripciones' },
-  { date: '23/06', label: 'Pitch final del hackatón' },
-  { date: '19/07', label: 'Final del Mundial · settlement' },
+  { date: '11/06', label: 'Inauguración · México 🇲🇽 vs Sudáfrica 🇿🇦', detail: 'Estadio Ciudad de México · 13:00 CDMX' },
+  { date: '11/06 – 27/06', label: 'Fase de grupos', detail: '12 grupos de 4 · 72 partidos' },
+  { date: '28/06 – 03/07', label: 'Dieciseisavos de final', detail: '32 → 16 equipos' },
+  { date: '04/07 – 07/07', label: 'Octavos de final', detail: '16 → 8 equipos' },
+  { date: '09/07 – 11/07', label: 'Cuartos de final', detail: '8 → 4 equipos' },
+  { date: '14/07 – 15/07', label: 'Semifinales', detail: '4 → 2 equipos' },
+  { date: '18/07', label: 'Tercer puesto', detail: '' },
+  { date: '19/07', label: 'Final 🏆', detail: 'MetLife Stadium · Nueva Jersey' },
 ]
 
 const faqs = [
@@ -160,18 +163,24 @@ function Calendar() {
   return (
     <section id="calendario" className="border-b border-zinc-900 py-24">
       <div className="mx-auto max-w-6xl px-6">
-        <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Calendario</h2>
+        <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Calendario del Mundial</h2>
         <p className="mt-3 max-w-2xl text-zinc-400">
-          Las fechas clave entre el hackatón y la final del Mundial.
+          104 partidos. 48 selecciones. 3 países. Del 11 de junio al 19 de julio de 2026.
         </p>
-        <ol className="mt-12 space-y-4">
+        <ol className="mt-12 space-y-3">
           {timeline.map((t) => (
             <li
               key={t.date}
-              className="flex items-center gap-6 rounded-xl border border-zinc-900 bg-zinc-950 px-6 py-4"
+              className="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-1 rounded-xl border border-zinc-900 bg-zinc-950 px-6 py-4 md:grid-cols-[180px_1fr]"
             >
-              <span className="font-mono text-lg font-semibold text-brand">{t.date}</span>
-              <span className="text-zinc-300">{t.label}</span>
+              <span className="font-mono text-sm font-semibold text-brand md:text-base">{t.date}</span>
+              <span className="text-zinc-100">{t.label}</span>
+              {t.detail && (
+                <>
+                  <span className="hidden md:block" />
+                  <span className="text-sm text-zinc-500">{t.detail}</span>
+                </>
+              )}
             </li>
           ))}
         </ol>
