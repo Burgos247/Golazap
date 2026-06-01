@@ -14,7 +14,7 @@ export const POOL_CONFIG = {
   relays: [
     'wss://relay.damus.io',
     'wss://nos.lol',
-    'wss://relay.primal.net',
+    // 'wss://relay.primal.net', // rechaza kinds 1750/9735 con filtros multi-condición
   ],
 } as const
 
