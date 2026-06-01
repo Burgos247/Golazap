@@ -176,7 +176,7 @@ function Hero({ onInscribir }: { onInscribir: () => void }) {
           </h1>
           <p className="mt-6 max-w-xl text-lg text-zinc-300 md:text-xl">
             Inscripción <span className="font-semibold text-brand">2100 sats</span>.
-            El pozo entero a los ganadores. Cero custodia, cero fees.
+            El pozo entero a los ganadores. Vault público 2-de-3, cero fees.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <button
