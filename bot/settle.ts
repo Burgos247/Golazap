@@ -29,7 +29,8 @@ import { fileURLToPath } from 'node:url'
 import { SimplePool } from 'nostr-tools/pool'
 import { nip19 } from 'nostr-tools'
 
-import { POOL_CONFIG, poolCoord, resolveLightningAddress, fetchInvoice } from '../src/lib/inscription'
+import { POOL_CONFIG, poolCoord, resolveLightningAddress } from '../src/lib/inscription'
+import { rankInscriptions, type MatchResult, type Pick } from '../src/lib/scoring'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = resolve(__dirname, 'data')
@@ -39,7 +40,6 @@ const SETTLEMENT_FILE = resolve(DATA_DIR, 'settlement.json')
 
 const POT_SPLIT = [0.5, 0.3, 0.2] as const
 
-type Pick = { matchId: string; home: number; away: number }
 type Inscription = {
   pubkey: string
   paymentHash: string
@@ -47,17 +47,7 @@ type Inscription = {
   picks: Pick[]
   inscribedAt: number
 }
-type MatchResult = { matchId: string; home: number; away: number; status: string }
-type Ranking = {
-  position: number
-  pubkey: string
-  npub: string
-  score: number
-  exact: number
-  hits: number
-  inscribedAt: number
-}
-type Payout = {
+type WinnerPayout = {
   position: number
   pubkey: string
   npub: string
@@ -66,49 +56,6 @@ type Payout = {
   lud16?: string
   invoice?: string
   invoiceError?: string
-}
-
-function scorePick(pick: Pick, result: MatchResult): { points: number; exact: boolean; hit: boolean } {
-  if (pick.home === result.home && pick.away === result.away) {
-    return { points: 3, exact: true, hit: true }
-  }
-  const pickWinner = Math.sign(pick.home - pick.away)
-  const resultWinner = Math.sign(result.home - result.away)
-  if (pickWinner === resultWinner) return { points: 1, exact: false, hit: true }
-  return { points: 0, exact: false, hit: false }
-}
-
-function rankInscriptions(inscriptions: Inscription[], results: MatchResult[]): Ranking[] {
-  const byId = new Map(results.filter((r) => r.status === 'final').map((r) => [r.matchId, r]))
-  const scored = inscriptions.map((ins) => {
-    let score = 0
-    let exact = 0
-    let hits = 0
-    for (const pick of ins.picks) {
-      const r = byId.get(pick.matchId)
-      if (!r) continue
-      const { points, exact: isExact, hit } = scorePick(pick, r)
-      score += points
-      if (isExact) exact++
-      if (hit) hits++
-    }
-    return { pubkey: ins.pubkey, score, exact, hits, inscribedAt: ins.inscribedAt }
-  })
-  scored.sort(
-    (a, b) =>
-      b.score - a.score ||
-      b.exact - a.exact ||
-      a.inscribedAt - b.inscribedAt
-  )
-  return scored.map((s, i) => ({
-    position: i + 1,
-    pubkey: s.pubkey,
-    npub: nip19.npubEncode(s.pubkey),
-    score: s.score,
-    exact: s.exact,
-    hits: s.hits,
-    inscribedAt: s.inscribedAt,
-  }))
 }
 
 async function fetchLud16(pool: SimplePool, pubkey: string): Promise<string | undefined> {
@@ -125,13 +72,13 @@ async function fetchLud16(pool: SimplePool, pubkey: string): Promise<string | un
 
 async function buildPayout(
   pool: SimplePool,
-  winner: Ranking,
+  winner: { position: number; pubkey: string; score: number },
   amountSats: number
-): Promise<Payout> {
-  const base: Payout = {
+): Promise<WinnerPayout> {
+  const base: WinnerPayout = {
     position: winner.position,
     pubkey: winner.pubkey,
-    npub: winner.npub,
+    npub: nip19.npubEncode(winner.pubkey),
     score: winner.score,
     amountSats,
   }
@@ -176,17 +123,19 @@ async function main() {
   const rankings = rankInscriptions(inscriptions, results)
   console.log('\n📊 Ranking:')
   for (const r of rankings) {
-    console.log(`   #${r.position} ${r.npub.slice(0, 20)}... · ${r.score} pts · ${r.exact} exactos · ${r.hits} aciertos`)
+    const npub = nip19.npubEncode(r.pubkey)
+    console.log(`   #${r.position} ${npub.slice(0, 20)}... · ${r.score} pts · ${r.exact} exactos · ${r.hits} aciertos`)
   }
 
   const top3 = rankings.slice(0, 3)
   const pool = new SimplePool()
 
   console.log('\n💸 Calculando payouts (50/30/20)...')
-  const payouts: Payout[] = []
+  const payouts: WinnerPayout[] = []
   for (let i = 0; i < top3.length; i++) {
     const amount = Math.floor(totalPot * POT_SPLIT[i])
-    console.log(`   Procesando #${i + 1}: ${amount} sats → ${top3[i].npub.slice(0, 20)}...`)
+    const npub = nip19.npubEncode(top3[i].pubkey)
+    console.log(`   Procesando #${i + 1}: ${amount} sats → ${npub.slice(0, 20)}...`)
     const payout = await buildPayout(pool, top3[i], amount)
     payouts.push(payout)
     if (payout.invoice) {
@@ -202,7 +151,7 @@ async function main() {
     potSats: totalPot,
     split: POT_SPLIT,
     settledAt: Math.floor(Date.now() / 1000),
-    rankings,
+    rankings: rankings.map((r) => ({ ...r, npub: nip19.npubEncode(r.pubkey) })),
     payouts,
   }
 

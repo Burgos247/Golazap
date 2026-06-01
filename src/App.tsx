@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { InscribirseModal } from './components/InscribirseModal'
 import { PicksModal } from './components/PicksModal'
+import { Leaderboard } from './components/Leaderboard'
 
 const steps = [
   {
@@ -104,6 +105,7 @@ function Header({ onInscribir }: { onInscribir: () => void }) {
         </a>
         <nav className="hidden gap-8 text-sm text-zinc-400 md:flex">
           <a href="#como-funciona" className="hover:text-zinc-100">Cómo funciona</a>
+          <a href="#leaderboard" className="hover:text-zinc-100">Leaderboard</a>
           <a href="#calendario" className="hover:text-zinc-100">Calendario</a>
           <a href="#faq" className="hover:text-zinc-100">FAQ</a>
         </nav>
@@ -394,6 +396,7 @@ export default function App() {
         <BuntingStrip />
         <Stats />
         <HowItWorks />
+        <Leaderboard onInscribir={() => setModal({ kind: 'inscribir' })} />
         <Calendar />
         <Faq />
       </main>

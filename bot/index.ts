@@ -106,31 +106,29 @@ async function start() {
   // Filtramos receipts por #p (recipient = LNURL nostrPubkey) porque WoS no
   // copia el a-tag del zap request al nivel del receipt. La validación del
   // a-tag se hace después leyendo el zap request del campo description.
-  const filters = [
-    { kinds: [9735], '#p': [recipientPubkey] },
-    { kinds: [1750], '#a': [POOL_A] },
-  ]
+  const receiptFilter = { kinds: [9735], '#p': [recipientPubkey] }
+  const predictionFilter = { kinds: [1750], '#a': [POOL_A] }
 
   // Replay histórico con querySync (más robusto entre relays que subscribeMany)
   console.log('   ⏳ Replay histórico...')
-  const historic = await pool.querySync([...POOL_CONFIG.relays], filters[0])
-  const historicPredictions = await pool.querySync([...POOL_CONFIG.relays], filters[1])
+  const historic = await pool.querySync([...POOL_CONFIG.relays], receiptFilter)
+  const historicPredictions = await pool.querySync([...POOL_CONFIG.relays], predictionFilter)
   console.log(`   📦 Recibidos ${historic.length} receipts + ${historicPredictions.length} predicciones`)
   const since = Math.floor(Date.now() / 1000)
   for (const ev of historic) handleReceipt(ev, recipientPubkey)
   for (const ev of historicPredictions) handlePrediction(ev)
   console.log(`📡 EOSE — fin de replay. ${validInscriptions.size} inscripciones válidas, ${rejectionLog.length} rechazos.`)
 
-  // Suscripción live para eventos nuevos
+  // Suscripciones live para eventos nuevos (dos calls porque filters difieren)
   pool.subscribeMany(
     [...POOL_CONFIG.relays],
-    filters.map((f) => ({ ...f, since })),
-    {
-      onevent(ev) {
-        if (ev.kind === 9735) handleReceipt(ev, recipientPubkey)
-        else if (ev.kind === 1750) handlePrediction(ev)
-      },
-    }
+    { ...receiptFilter, since },
+    { onevent: (ev) => handleReceipt(ev, recipientPubkey) }
+  )
+  pool.subscribeMany(
+    [...POOL_CONFIG.relays],
+    { ...predictionFilter, since },
+    { onevent: handlePrediction }
   )
   console.log('🟢 Listener live activo. Ctrl+C para salir.\n')
 
