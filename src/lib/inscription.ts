@@ -5,8 +5,8 @@
  */
 
 export const POOL_CONFIG = {
-  // TODO: reemplazar con tu Wallet of Satoshi (formato: usuario@walletofsatoshi.com)
-  lightningAddress: 'CAMBIAR_ESTO@walletofsatoshi.com',
+  // WoS de testing — verificada con Zaps (NIP-57) activos
+  lightningAddress: 'reversemouth34@walletofsatoshi.com',
   amountSats: 2100,
   // TODO: npub del organizador (placeholder hasta que generemos las keys del pool)
   organizerPubkey: '0000000000000000000000000000000000000000000000000000000000000000',
