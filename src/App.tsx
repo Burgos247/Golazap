@@ -13,7 +13,7 @@ const steps = [
     n: 2,
     icon: '⚡',
     title: 'Pagá 2100 sats',
-    body: 'Una sola inscripción vía Zap. Tu pago va a un vault público con multisig 2-de-3 — auditable on-chain, sin custodio único.',
+    body: 'Una sola inscripción vía Zap. Los sats caen en una hot wallet con cap operativo bajo; el excedente se sweepa a un cold vault multisig 2-de-3 onchain. Ambos saldos públicos.',
   },
   {
     n: 3,
@@ -67,11 +67,15 @@ const faqs = [
   },
   {
     q: '¿Por qué "non-custodial"?',
-    a: 'Porque el pozo se custodia en un vault multisig 2-de-3 entre referentes públicos de La Crypta. Ningún operador solo puede mover fondos. La dirección del vault es pública y su balance se puede auditar on-chain en tiempo real.',
+    a: 'Trust-minimized, más precisamente. Lightning no soporta multisig multi-party, así que los Zaps caen en una hot wallet single-sig operada por el organizador. El cap está fijado en 210k sats (≈100 inscripciones) y todo excedente se sweepa automáticamente a un cold vault multisig 2-de-3 onchain. Pérdida máxima ante un compromiso = el cap, no el pozo entero. Recovery garantizado por las 2 firmas adicionales.',
+  },
+  {
+    q: '¿Cómo conviven Lightning y el multisig?',
+    a: 'En dos capas. Capa caliente: una hot Lightning wallet single-sig que recibe los Zaps y emite los payouts (Lightning lo requiere así, no hay forma de hacerlo multisig nativo). Capa fría: un cold vault multisig 2-de-3 onchain que guarda el excedente del cap y sirve como backup. El sweep entre las dos capas es automático y auditable on-chain.',
   },
   {
     q: '¿Quién tiene las llaves del vault?',
-    a: 'Tres npubs públicos de la comunidad de La Crypta, anunciados al abrir cada pool. Para ejecutar cualquier movimiento de fondos hacen falta 2 de las 3 firmas. La dirección on-chain queda visible en la landing junto con un link a Mempool y Amboss.',
+    a: 'El cold vault es un multisig 2-de-3 entre 3 npubs públicos de la comunidad de La Crypta, anunciados al abrir cada pool. Necesita 2 firmas para mover fondos. La hot wallet es operada por el organizador con su propia clave — por eso tiene cap bajo y balance público.',
   },
   {
     q: '¿Quién decide los ganadores?',
@@ -79,7 +83,7 @@ const faqs = [
   },
   {
     q: '¿Cómo cobro si gano?',
-    a: 'El bot de settlement arma el payout, dos de los tres firmantes del vault co-firman la transacción y el premio te llega como pago Lightning directo a tu wallet, asociado a tu npub.',
+    a: 'El bot de settlement paga vía Lightning desde la hot wallet a la LNURL pública asociada a tu npub. Si hace falta más liquidez (porque parte del pozo está en el cold vault), los firmantes co-firman primero un movimiento cold → hot, después se hace el payout LN.',
   },
 ]
 
