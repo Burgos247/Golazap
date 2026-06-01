@@ -7,15 +7,22 @@ import {
   poolCoord,
   resolveLightningAddress,
 } from '../lib/inscription'
+import { paymentHashFromInvoice } from '../lib/picks'
 
 type State =
   | { kind: 'idle' }
   | { kind: 'working'; step: string }
   | { kind: 'invoice'; pr: string }
-  | { kind: 'paid' }
+  | { kind: 'paid'; paymentHash: string }
   | { kind: 'error'; message: string }
 
-export function InscribirseModal({ onClose }: { onClose: () => void }) {
+export function InscribirseModal({
+  onClose,
+  onPaid,
+}: {
+  onClose: () => void
+  onPaid: (paymentHash: string) => void
+}) {
   const [state, setState] = useState<State>({ kind: 'idle' })
   const [copied, setCopied] = useState(false)
 
@@ -70,7 +77,7 @@ export function InscribirseModal({ onClose }: { onClose: () => void }) {
         try {
           await window.webln.enable()
           await window.webln.sendPayment(pr)
-          setState({ kind: 'paid' })
+          setState({ kind: 'paid', paymentHash: paymentHashFromInvoice(pr) })
         } catch {
           // si el usuario cancela o WebLN falla, dejamos el QR visible
         }
@@ -149,14 +156,24 @@ export function InscribirseModal({ onClose }: { onClose: () => void }) {
                 className="mx-auto h-auto w-full"
               />
             </div>
-            <button
-              onClick={() => copyInvoice(state.pr)}
-              className="w-full rounded-full border border-zinc-700 py-3 text-sm font-semibold transition hover:bg-zinc-900"
-            >
-              {copied ? '✓ Invoice copiado' : '📋 Copiar invoice'}
-            </button>
+            <div className="grid gap-2 md:grid-cols-2">
+              <button
+                onClick={() => copyInvoice(state.pr)}
+                className="rounded-full border border-zinc-700 py-3 text-sm font-semibold transition hover:bg-zinc-900"
+              >
+                {copied ? '✓ Copiado' : '📋 Copiar'}
+              </button>
+              <button
+                onClick={() =>
+                  setState({ kind: 'paid', paymentHash: paymentHashFromInvoice(state.pr) })
+                }
+                className="rounded-full bg-brand py-3 text-sm font-semibold text-zinc-950 transition hover:bg-brand-dark"
+              >
+                Ya pagué →
+              </button>
+            </div>
             <p className="text-center text-[11px] text-zinc-500">
-              Escaneá con cualquier wallet Lightning. La inscripción se confirma al recibir el pago.
+              Escaneá con cualquier wallet Lightning, o tocá "Ya pagué" cuando termines.
             </p>
           </div>
         )}
@@ -166,14 +183,22 @@ export function InscribirseModal({ onClose }: { onClose: () => void }) {
             <div className="text-6xl">🎉</div>
             <p className="font-display text-3xl text-brand">¡INSCRIPTO!</p>
             <p className="text-sm text-zinc-400">
-              Cargá tus pronósticos antes del 11/06 12:00 CDMX (kickoff del partido inaugural).
+              Cargá tus pronósticos antes del kickoff del partido inaugural (11/06).
             </p>
-            <button
-              onClick={onClose}
-              className="rounded-full bg-zinc-800 px-6 py-2 text-sm font-semibold hover:bg-zinc-700"
-            >
-              Cerrar
-            </button>
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                onClick={() => onPaid(state.paymentHash)}
+                className="rounded-full bg-brand px-6 py-3 font-semibold text-zinc-950 shadow-lg shadow-brand/30 transition hover:bg-brand-dark"
+              >
+                Cargar pronósticos →
+              </button>
+              <button
+                onClick={onClose}
+                className="rounded-full bg-zinc-800 px-6 py-2 text-sm font-semibold hover:bg-zinc-700"
+              >
+                Después
+              </button>
+            </div>
           </div>
         )}
 

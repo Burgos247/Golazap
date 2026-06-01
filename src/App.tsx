@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { InscribirseModal } from './components/InscribirseModal'
+import { PicksModal } from './components/PicksModal'
 
 const steps = [
   {
@@ -373,16 +374,19 @@ function Footer() {
   )
 }
 
+type ModalState =
+  | { kind: 'closed' }
+  | { kind: 'inscribir' }
+  | { kind: 'picks'; paymentHash: string }
+
 export default function App() {
-  const [modalOpen, setModalOpen] = useState(false)
-  const open = () => setModalOpen(true)
-  const close = () => setModalOpen(false)
+  const [modal, setModal] = useState<ModalState>({ kind: 'closed' })
 
   return (
     <div className="min-h-screen">
-      <Header onInscribir={open} />
+      <Header onInscribir={() => setModal({ kind: 'inscribir' })} />
       <main>
-        <Hero onInscribir={open} />
+        <Hero onInscribir={() => setModal({ kind: 'inscribir' })} />
         <BuntingStrip />
         <Stats />
         <HowItWorks />
@@ -390,7 +394,18 @@ export default function App() {
         <Faq />
       </main>
       <Footer />
-      {modalOpen && <InscribirseModal onClose={close} />}
+      {modal.kind === 'inscribir' && (
+        <InscribirseModal
+          onClose={() => setModal({ kind: 'closed' })}
+          onPaid={(paymentHash) => setModal({ kind: 'picks', paymentHash })}
+        />
+      )}
+      {modal.kind === 'picks' && (
+        <PicksModal
+          paymentHash={modal.paymentHash}
+          onClose={() => setModal({ kind: 'closed' })}
+        />
+      )}
     </div>
   )
 }
