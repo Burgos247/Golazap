@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { InscribirseModal } from './components/InscribirseModal'
+
 const steps = [
   {
     n: 1,
@@ -85,7 +88,7 @@ const bunting = [
   '🇸🇪','🇹🇷','🇦🇺','🇶🇦','🇮🇷','🇳🇿','🇸🇨','🇨🇿','🇪🇬','🇨🇻',
 ]
 
-function Header() {
+function Header({ onInscribir }: { onInscribir: () => void }) {
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-900 bg-zinc-950/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -101,9 +104,10 @@ function Header() {
         </nav>
         <button
           type="button"
+          onClick={onInscribir}
           className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-brand-dark"
         >
-          Conectar Nostr
+          Inscribirme
         </button>
       </div>
     </header>
@@ -148,7 +152,7 @@ function ScoreboardCard() {
   )
 }
 
-function Hero() {
+function Hero({ onInscribir }: { onInscribir: () => void }) {
   return (
     <section id="top" className="relative overflow-hidden border-b border-zinc-900">
       <div className="absolute inset-0 bg-pitch opacity-90" />
@@ -177,6 +181,7 @@ function Hero() {
           <div className="mt-10 flex flex-wrap gap-4">
             <button
               type="button"
+              onClick={onInscribir}
               className="rounded-full bg-brand px-6 py-3 font-semibold text-zinc-950 shadow-lg shadow-brand/20 transition hover:bg-brand-dark"
             >
               ⚡ Inscribirme
@@ -369,11 +374,15 @@ function Footer() {
 }
 
 export default function App() {
+  const [modalOpen, setModalOpen] = useState(false)
+  const open = () => setModalOpen(true)
+  const close = () => setModalOpen(false)
+
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header onInscribir={open} />
       <main>
-        <Hero />
+        <Hero onInscribir={open} />
         <BuntingStrip />
         <Stats />
         <HowItWorks />
@@ -381,6 +390,7 @@ export default function App() {
         <Faq />
       </main>
       <Footer />
+      {modalOpen && <InscribirseModal onClose={close} />}
     </div>
   )
 }
