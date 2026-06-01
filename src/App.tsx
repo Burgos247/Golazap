@@ -9,7 +9,7 @@ const steps = [
     n: 2,
     icon: '⚡',
     title: 'Pagá 2100 sats',
-    body: 'Una sola inscripción vía Zap. Tu pago queda asegurado en Nostr, sin que nadie custodie los fondos.',
+    body: 'Una sola inscripción vía Zap. Tu pago va a un vault público con multisig 2-de-3 — auditable on-chain, sin custodio único.',
   },
   {
     n: 3,
@@ -63,15 +63,19 @@ const faqs = [
   },
   {
     q: '¿Por qué "non-custodial"?',
-    a: 'Porque Golazap nunca toca los fondos. La plataforma solo publica eventos firmados; los sats viven en un escrow programable hasta el final del Mundial.',
+    a: 'Porque el pozo se custodia en un vault multisig 2-de-3 entre referentes públicos de La Crypta. Ningún operador solo puede mover fondos. La dirección del vault es pública y su balance se puede auditar on-chain en tiempo real.',
+  },
+  {
+    q: '¿Quién tiene las llaves del vault?',
+    a: 'Tres npubs públicos de la comunidad de La Crypta, anunciados al abrir cada pool. Para ejecutar cualquier movimiento de fondos hacen falta 2 de las 3 firmas. La dirección on-chain queda visible en la landing junto con un link a Mempool y Amboss.',
   },
   {
     q: '¿Quién decide los ganadores?',
-    a: 'Un oráculo (idealmente un multisig de personas reconocidas de la comunidad) publica los resultados firmados de cada partido. El bot de settlement aplica las reglas de scoring de forma determinística.',
+    a: 'Un oráculo (idealmente un multisig de personas reconocidas de la comunidad) publica los resultados firmados de cada partido. El bot de settlement aplica las reglas de scoring de forma determinística — cualquiera puede recalcular el ranking leyendo los eventos Nostr.',
   },
   {
     q: '¿Cómo cobro si gano?',
-    a: 'Recibís un token con tu premio en el evento de settlement. Lo reclamás desde tu wallet — al instante, sin pasar por la plataforma.',
+    a: 'El bot de settlement arma el payout, dos de los tres firmantes del vault co-firman la transacción y el premio te llega como pago Lightning directo a tu wallet, asociado a tu npub.',
   },
 ]
 
