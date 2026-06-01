@@ -7,7 +7,7 @@
 export const POOL_CONFIG = {
   // WoS de testing — verificada con Zaps (NIP-57) activos
   lightningAddress: 'reversemouth34@walletofsatoshi.com',
-  amountSats: 2100,
+  amountSats: 2, // TODO: volver a 2100 cuando salgamos de testing
   // TODO: npub del organizador (placeholder hasta que generemos las keys del pool)
   organizerPubkey: '0000000000000000000000000000000000000000000000000000000000000000',
   poolId: 'golazap-wc2026-test',
